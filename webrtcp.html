@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebRTC Demo</title>
+<!-- <script src="https://cdn.jsdelivr.net/npm/webrtc-adapter@latest/out/adapter.js"></script> -->
+</head>
+<body>
+
+<script>
+// 确保已安装webrtc-adapter
+//const adapter = require('webrtc-adapter');
+
+// 创建RTCPeerConnection对象
+const peerConnection = new RTCPeerConnection({
+  iceServers: []
+});
+
+// 添加媒体流
+navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+  .then(mediaStream => {
+    mediaStream.getTracks().forEach(track => peerConnection.addTrack(track, mediaStream));
+  });
+
+// 启动ICE收集过程
+peerConnection.createOffer()
+  .then(offer => peerConnection.setLocalDescription(offer))
+  .then(() => {
+    // 获取SDP
+    const sdp = peerConnection.localDescription.sdp;
+    console.log('SDP:', sdp);
+
+    // 获取ICE候选者
+    const iceCandidates = peerConnection.getLocalIceCandidates();
+    console.log('ICE Candidates:', iceCandidates);
+  })
+  .catch(console.error);
+
+</script>
+</body>
+</html>
+

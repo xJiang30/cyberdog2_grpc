@@ -31,7 +31,16 @@ class Teleop:
         # 在Windows上使用msvcrt
         if os.name == 'nt':
             return msvcrt.getch().decode('utf-8')
-
+        # 在Linux上使用termios和tty
+        else:
+            tty.setraw(sys.stdin.fileno())
+            rlist, _, _ = select.select([sys.stdin], [], [], 0.1)
+            if rlist:
+                key = sys.stdin.read(1)
+            else:
+                key = ''
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.__settings)
+            return key
 
 class Client:
     def __init__(self, cyberdog_ip: str, ca_cert: str, client_key: str, client_cert: str):
@@ -48,7 +57,7 @@ class Client:
 
     def image_tran(self):
         param1 = {
-            'offer_sdp': {"type": "offer", "sdp": "v=0\r\no=- 5910110687297165449 0 IN IP4 192.168.31.126\r\ns=-\r\nt=0 0\r\nm=video 9 UDP/TLS/RTP/SAVPF 96 97 98 99 100 101 102 103 104 106 107 108 109 127 128 129 130 131 132 133 134 135 136 137 138 139"},
+            'offer_sdp': '{"type": "offer", "sdp": "v=0\r\no=- 5173367415324555211 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=extmap-allow-mixed\r\na=msid-semantic: WMS"}',
             #'uid': 'your_app_identifier',
             'height': 1280,
             'width': 720,
@@ -61,17 +70,17 @@ class Client:
         for i in response1:
             print(i)
 
-        param2 = {
-            'c_sdp':{"sdpMid":"image","sdpMLineIndex":0,"candidate":"candidate:1 1 udp 9 192.168.31.126 9 typ host"}
-        }
-        response2 = self.__stub.sendMsg(
-            cyberdog_app_pb2.SendRequest(
-                nameCode=4001,
-                params=json.dumps(param2)
-            )
-        )
-        for j in response2:
-            print(j)
+        # param2 = {
+        #     'c_sdp':{"sdpMid":"image","sdpMLineIndex":0,"candidate":"candidate:1 1 udp 9 192.168.31.126 9 typ host"}
+        # }
+        # response2 = self.__stub.sendMsg(
+        #     cyberdog_app_pb2.SendRequest(
+        #         nameCode=4001,
+        #         params=json.dumps(param2)
+        #     )
+        # )
+        # for j in response2:
+        #     print(j)
 
 
     def start_record(self):
